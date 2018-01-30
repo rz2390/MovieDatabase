@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Trend Detail</title>
+    {% include 'header.html' %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>{{trend['trend']['circle_name']}}</title>
+</head>
+
+<body>
+{% include 'navbar.html' %}
+
+<header>
+    <div class="blog-header">
+        <div class="container">
+            <h1 class="blog-title">{{trend['trend']['circle_name']}}</h1>
+        </div>
+    </div>
+</header>
+
+<main role="main" class="container">
+    <img src="{{trend['trend']['image']}}" class="img-fluid" alt="Responsive image">
+    <div class="row">
+        <div class="col-sm-8 blog-main">
+            <div class="blog-post">
+                <p class="blog-post-meta">{{trend['trend']['time']}} by
+                    <a href="#">{{trend['trend']['nick_name']}}</a>
+                </p>
+                {% for para in trend['trend']['content'].split('\n') %}
+                <p>{{para}}</p>
+                {% endfor %}
+                <hr>
+            </div><!-- /.blog-post -->
+        </div><!-- /.blog-main -->
+
+        <aside class="col-sm-3 ml-sm-auto blog-sidebar">
+            <div class="sidebar-module sidebar-module-inset">
+                <div class="row">
+                    <div class="col-6">
+                        <h4 id='like-count'>{{trend['trend']['count']}} Likes</h4>
+                    </div>
+                    <div class="col-6">
+                        <label class="btn btn-primary like-button comments w-50 p-1"
+                               id="like-{{trend['trend']['trend_id']}}">
+                            {% if trend['trend']['like_or_not'] == 0: %}
+                            like
+                            {% else: %}
+                            unlike
+                            {% endif %}
+                        </label>
+                    </div>
+                </div>
+                <h4>Comments</h4>
+                {% for c in trend['comment']: %}
+                <div class="card momment-card">
+                    <div class="card-block">
+                        <div class="row">
+                            <div class="col-6">
+                                <p class="card-text">{{c['nick_name']}}</p>
+                            </div>
+                            <div class="col-6">
+                                <p class="card-text">{{c['time']}}</p>
+                            </div>
+                        </div>
+                        <p class="card-text">{{c['content']}}</p>
+                    </div>
+                </div>
+                {% endfor %}
+                <div class="card momment-card">
+                    <div class="card-block">
+                        <div class="row">
+                            <div class='col-12'>
+                                <textarea class="form-control" rows="3"
+                                          id="comment-content-{{trend['trend']['trend_id']}}" required></textarea>
+                            </div>
+                        </div>
+                        <div class='row'>
+                            <div class="col-3">
+                                <label class="btn btn-primary comment-button"
+                                       id="comment-{{trend['trend']['trend_id']}}">comment</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside><!-- /.blog-sidebar -->
+    </div><!-- /.row -->
+</main><!-- /.container -->
+
+</body>
+
+
+<script type="text/javascript">
+    $(".like-button").click(function () {
+        let trend_id = $(this).attr('id').split("-")[1];
+        let jsonData = {"trend_id": trend_id, "like": $(this).text()};
+        $.ajax({
+            type: 'POST',
+            url: "/trend/like/",
+            dataType: "text",
+            data: jsonData,
+            success: (res) => {
+                let lc = $("#like-count");
+                let cnt = parseInt(lc.text().trim().split(" ")[0]);
+                if ($(this).text().trim() === 'like') {
+                    $(this).text('unlike');
+                    cnt++;
+
+                }
+                else {
+                    $(this).text('like');
+                    cnt--;
+                }
+                lc.text(cnt + " Likes");
+            }
+        });
+    });
+
+    $(".comment-button").click(function () {
+        var trend_id = $(this).attr('id').split("-")[1];
+        let comment_content = $("#comment-content-" + trend_id).val();
+        let jsonData = {"trend_id": trend_id, "content": comment_content};
+        $.ajax({
+            type: 'POST',
+            url: "/trend/comment/",
+            dataType: "text",
+            data: jsonData,
+            success: (res) => {
+                $("#comment-content-" + trend_id).val("");
+                window.location.reload();
+            }
+        });
+    });
+</script>
+
+</html>

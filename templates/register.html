@@ -1,0 +1,40 @@
+<html>
+<head>
+    <title>Register</title>
+    {% include 'header.html' %}
+</head>
+
+<body>
+<div class='container'>
+    <form action='/student/create/' method='post'>
+        <label for="nick_name">Nick Name</label>
+        <input type="text" id="nick_name" name='nick_name' class="form-control" required>
+
+        <label for="email">Email</label>
+        <input type="email" id="email" name='email' class="form-control" required>
+
+        <label for="avatar">Avatar</label>
+        <input type="url" id="avatar" name='avatar' class="form-control">
+
+        <label>School</label>
+        <select class="form-control" name="school_id" id="exampleFormControlSelect1">
+            {% for s in schools %}
+            <option value="{{s['school_id']}}">{{s['school_name']}}</option>
+            {% endfor %}
+        </select>
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name='password' class="form-control" required>
+
+        <label for="introduction">Introduction</label>
+        <input type="text" id="introduction" name='introduction' class="form-control" required>
+
+        <div class="row">
+            <div class="col-2">
+                <button class="btn btn-lg btn-primary btn-block" type="submit">register</button>
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+</html>
