@@ -1,3 +1,3 @@
-# UMomment
+# MovieDatabase
 
-A simple social app.
+A simple web application.
