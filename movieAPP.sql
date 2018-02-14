@@ -100,7 +100,7 @@ CREATE TABLE Review
     movieID SERIAL NOT NULL,
     comment TEXT NOT NULL,
     rating INT NOT NULL,
-    vote INT,
+    likedtimes INT,
     modifiedTime TIMESTAMP,
     PRIMARY KEY(keywordID),
     FOREIGN KEY(userID)REFERENCES User ON DELETE CASCADE,
@@ -113,7 +113,7 @@ CREATE TABLE Perform
 (
     actID SERIAL NOT NULL,
     movieID SERIAL NOT NULL,
-    modifiedTime TIMESTAMP,
+    leadrole INT NOT NULL,
     PRIMARY KEY(actID,movieID),
     FOREIGN KEY(actID)REFERENCES Actor ON DELETE CASCADE,
     FOREIGN KEY(movieID)REFERENCES Movie ON DELETE CASCADE,
@@ -123,18 +123,29 @@ CREATE TABLE Direct
 (
     directorID SERIAL NOT NULL,
     movieID SERIAL NOT NULL,
-    modifiedTime TIMESTAMP,
     PRIMARY KEY(actID,movieID),
     FOREIGN KEY(actID)REFERENCES Actor ON DELETE CASCADE,
     FOREIGN KEY(movieID)REFERENCES Movie ON DELETE CASCADE,    
 );
 
+CREATE TABLE Show
+(
+    movieID SERIAL NOT NULL,
+    regionID SERIAL NOT NULL,
+    PRIMARY KEY(movieID,regionID),
+    FOREIGN KEY(movieID)REFERENCES Movie ON DELETE CASCADE,
+    FOREIGN KEY(regionID)REFERENCES Region ON DELETE CASCADE,    
+);
+
 CREATE TABLE Vote
 (
+    voteID SERIAL NOT NULL,
     userID SERIAL NOT NULL,
     reviewID SERIAL NOT NULL,
+    voteit BOOLEAN NOT NULL,
     modifiedTime TIMESTAMP,
-    PRIMARY KEY(userID,reviewID),
+    PRIMARY KEY(voteID),
     FOREIGN KEY(userID)REFERENCES User ON DELETE CASCADE,
     FOREIGN KEY(reviewID)REFERENCES Review ON DELETE CASCADE,
+    CONSTRAINT User_Vote_Review UNIQUE(voteID,userID,reviewID)
 );
