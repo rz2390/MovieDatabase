@@ -1,4 +1,4 @@
-INSET INTO movie (movieID,title,popularity,genre,revenue) VALUES
+INSERT INTO movie (movieID,title,popularity,genre,revenue) VALUES
 (),
 (),
 ();
