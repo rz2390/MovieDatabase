@@ -8,14 +8,14 @@ from flask import Flask, request, abort, url_for, render_template, g, redirect, 
 import json
 import datetime
 
-if session:
-  session.clear()
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 app.secret_key='rz2390ps2997project'
 
 DATABASEURI = "postgresql://rz2390:rz2390ps2997project@35.231.44.137/proj1part2"
 engine = create_engine(DATABASEURI)
+
+
 
 @app.before_request
 def before_request():
@@ -35,8 +35,15 @@ def teardown_request(exception):
 
 @app.route('/')
 def index():
-  print(session)
+  if session:
+    session.clear()
   return render_template("index.html")
+
+@app.route('/index2')
+def index2():
+  if session:
+    print(session)
+  return render_template("index2.html")
 
 @app.route('/register')
 def another():
@@ -56,15 +63,39 @@ def another4():
 
 @app.route('/movieDisplay/<movieid>')
 def displayMovie(movieid):
-  context=movieinfo(movieid)
-  return render_template("movieDisplay.html",**context)
+  try:
+    if 'userid' not in session:
+      return render_template("login.html")
+    userid=session['userid']
+    wishlistidl=g.conn.execute('''SELECT COUNT(*) FROM wishlist''')
+    s=list(wishlistidl)
+    print("test:",s)
+    #s='[(11L,)]'
+    n=re.findall('(\d+L,)',str(s))
+    if n!=[]:
+      nS=re.findall('\d+',n[0])
+      wishlistid=int(nS[0])+1
+    else:
+      print("emmm")
+    t=str(datetime.datetime.now())
+    modifiedtime=t[:10]
+    g.conn.execute('''INSERT INTO wishlist (wishlistid,userid,movieid,modifiedtime) VALUES (%s,%s,%s,%s)''', (wishlistid,userid,movieid,modifiedtime))
+    context=profile(userid)
+    wishlistidl.close()
+    return render_template("profile.html",**context)
+  except Exception as e:
+    error=str(e)
+    print(error)
+  return render_template("movieDisplay.html")
 
 @app.route('/reviewDisplay/<reviewid>')
 def displayReview(reviewid):
-  cursor=g.conn.execute('''SELECT * FROM review WHERE reviewid='''+str(session['reviewid']))
-  liked=str(cursor.fetchone()[5]+1)
+  cursor=g.conn.execute('''SELECT * FROM review WHERE reviewid='''+str(reviewid))
+  ss=cursor.fetchone()
+  reviewid=str(reviewid)
+  liked=str(ss[5]+1)
   cursor.close()
-  cursor=g.conn.execute('''UPDATE review SET reviewid=%s,userid=%s,movieid=%s,comment=%s,rating=%s,liked=%s,modifiedtime=%s WHERE reviewid='''+str(session['reviewid']), (str(session['reviewid']),str(session['ruserid']),str(session['rmovieid']),session['comment'],str(session['rating']),liked,session['modifiedtime']))
+  cursor=g.conn.execute('''UPDATE review SET liked='''+liked +'''WHERE reviewid='''+reviewid)
   cursor.close()
   session['liked']=int(liked)
   context=reviewinfo(reviewid)
@@ -72,12 +103,14 @@ def displayReview(reviewid):
 
 @app.route('/movieDisplay/reviewDisplay/<reviewid>')
 def displayReview2(reviewid):
-  cursor=g.conn.execute('''SELECT * FROM review WHERE reviewid='''+str(session['reviewid']))
-  liked=str(cursor.fetchone()[5]+1)
+  print("reviewid",reviewid)
+  cursor=g.conn.execute('''SELECT * FROM review WHERE reviewid='''+str(reviewid))
+  ss=cursor.fetchone()
+  reviewid=str(reviewid)
+  liked=str(ss[5]+1)
   cursor.close()
-  cursor=g.conn.execute('''UPDATE review SET reviewid=%s,userid=%s,movieid=%s,comment=%s,rating=%s,liked=%s,modifiedtime=%s WHERE reviewid='''+str(session['reviewid']), (str(session['reviewid']),str(session['ruserid']),str(session['rmovieid']),session['comment'],str(session['rating']),liked,session['modifiedtime']))
+  cursor=g.conn.execute('''UPDATE review SET liked='''+liked +'''WHERE reviewid='''+reviewid)
   cursor.close()
-  session['liked']=int(liked)
   context=reviewinfo(reviewid)
   return render_template("reviewDisplay.html",**context)
 
@@ -217,7 +250,12 @@ def profile(id):
   for result in cursor2:
     datas2.append(result)
   cursor2.close()
-  datastotal=datas+datas2
+  cursor3=g.conn.execute("SELECT * FROM wishlist WHERE userid=%s",str(id))
+  datas3=[]
+  for result in cursor3:
+    datas.append(result)
+  cursor3.close()
+  datastotal=datas+datas2+datas3
   context = dict(data = datastotal)
   return context
 
@@ -247,7 +285,7 @@ def movieinfo(id):
   except Exception as e:
     error=str(e)
     print(error)
-  return render_template('index.html')
+  return render_template('index2.html')
 
 def reviewinfo(id):
   try:
@@ -272,7 +310,7 @@ def reviewinfo(id):
   except Exception as e:
     error=str(e)
     print(error)
-  return render_template('index.html')
+  return render_template('index2.html')
 
 @app.route('/movieListID', methods=['POST'])
 def movie():
@@ -283,7 +321,7 @@ def movie():
   except Exception as e:
     error=str(e)
     print(error)
-  return render_template('index.html')
+  return render_template('index2.html')
 
 @app.route('/movieListGenre', methods=['POST'])
 def movie2():
@@ -300,7 +338,7 @@ def movie2():
   except Exception as e:
     error=str(e)
     print(error)
-  return render_template('index.html')
+  return render_template('index2.html')
 
 if __name__ == "__main__":
   import click
