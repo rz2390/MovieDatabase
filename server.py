@@ -58,12 +58,24 @@ def displayMovie(movieid):
 
 @app.route('/reviewDisplay/<reviewid>')
 def displayReview(reviewid):
-  context=reviewinfo(reviewid)
   cursor=g.conn.execute('''SELECT * FROM review WHERE reviewid='''+str(session['reviewid']))
   liked=str(cursor.fetchone()[5]+1)
   cursor.close()
   cursor=g.conn.execute('''UPDATE review SET reviewid=%s,userid=%s,movieid=%s,comment=%s,rating=%s,liked=%s,modifiedtime=%s WHERE reviewid='''+str(session['reviewid']), (str(session['reviewid']),str(session['ruserid']),str(session['rmovieid']),session['comment'],str(session['rating']),liked,session['modifiedtime']))
   cursor.close()
+  session['liked']=int(liked)
+  context=reviewinfo(reviewid)
+  return render_template("reviewDisplay.html",**context)
+
+@app.route('/movieDisplay/reviewDisplay/<reviewid>')
+def displayReview2(reviewid):
+  cursor=g.conn.execute('''SELECT * FROM review WHERE reviewid='''+str(session['reviewid']))
+  liked=str(cursor.fetchone()[5]+1)
+  cursor.close()
+  cursor=g.conn.execute('''UPDATE review SET reviewid=%s,userid=%s,movieid=%s,comment=%s,rating=%s,liked=%s,modifiedtime=%s WHERE reviewid='''+str(session['reviewid']), (str(session['reviewid']),str(session['ruserid']),str(session['rmovieid']),session['comment'],str(session['rating']),liked,session['modifiedtime']))
+  cursor.close()
+  session['liked']=int(liked)
+  context=reviewinfo(reviewid)
   return render_template("reviewDisplay.html",**context)
 
 @app.route('/reviewAdd', methods=['POST'])
@@ -95,6 +107,7 @@ def review():
     error=str(e)
     print(error)
   return render_template('reviewAdd.html')
+  #return redirect(url_for('reviewAdd'))
 
 @app.route('/update', methods=['POST'])
 def update():
@@ -258,12 +271,29 @@ def reviewinfo(id):
     print(error)
   return render_template('index.html')
 
-@app.route('/movieList', methods=['POST'])
+@app.route('/movieListID', methods=['POST'])
 def movie():
   movieid=request.form['movie']
   try:
     context=movieinfo(movieid)
-    return render_template("movieList.html", **context)
+    return render_template("movieListID.html", **context)
+  except Exception as e:
+    error=str(e)
+    print(error)
+  return render_template('index.html')
+
+@app.route('/movieListGenre', methods=['POST'])
+def movie2():
+  genre=request.form['option']
+  try:
+    cursor=g.conn.execute('''SELECT * FROM movie WHERE genre=%s''',genre)
+    datas=[]
+    for result in cursor:
+      datas.append(result)
+    cursor.close()
+    print("datas",datas)
+    context=dict(data=datas)
+    return render_template("movieListGenre.html",**context)
   except Exception as e:
     error=str(e)
     print(error)
