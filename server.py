@@ -8,6 +8,8 @@ from flask import Flask, request, abort, url_for, render_template, g, redirect, 
 import json
 import datetime
 
+if session:
+  session.clear()
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 app.secret_key='rz2390ps2997project'
@@ -33,6 +35,7 @@ def teardown_request(exception):
 
 @app.route('/')
 def index():
+  print(session)
   return render_template("index.html")
 
 @app.route('/register')
