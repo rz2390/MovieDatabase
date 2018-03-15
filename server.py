@@ -1,10 +1,10 @@
 #!/usr/bin/env python2.7
 import re
+import datetime
 import os
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
-from flask import Flask, request, abort, render_template, g, redirect, Response,session
-
+from flask import Flask, request, abort, url_for, render_template, g, redirect, Response,session
 import json
 import datetime
 
@@ -46,6 +46,55 @@ def another2():
 @app.route('/update')
 def another3():
   return render_template("update.html")
+
+@app.route('/reviewAdd')
+def another4():
+  return render_template("reviewAdd.html")
+
+@app.route('/movieDisplay/<movieid>')
+def displayMovie(movieid):
+  context=movieinfo(movieid)
+  return render_template("movieDisplay.html",**context)
+
+@app.route('/reviewDisplay/<reviewid>')
+def displayReview(reviewid):
+  context=reviewinfo(reviewid)
+  cursor=g.conn.execute('''SELECT * FROM review WHERE reviewid='''+str(session['reviewid']))
+  liked=str(cursor.fetchone()[5]+1)
+  cursor.close()
+  cursor=g.conn.execute('''UPDATE review SET reviewid=%s,userid=%s,movieid=%s,comment=%s,rating=%s,liked=%s,modifiedtime=%s WHERE reviewid='''+str(session['reviewid']), (str(session['reviewid']),str(session['ruserid']),str(session['rmovieid']),session['comment'],str(session['rating']),liked,session['modifiedtime']))
+  cursor.close()
+  return render_template("reviewDisplay.html",**context)
+
+@app.route('/reviewAdd', methods=['POST'])
+def review():
+  comment=request.form['comment']
+  rating=request.form['rating']
+  try:
+    if 'userid' not in session:
+      return render_template("login.html")
+    userid=session['userid']
+    reviewidl=g.conn.execute('''SELECT COUNT(*) FROM review''')
+    s=list(reviewidl)
+    #s='[(11L,)]'
+    n=re.findall('(\d+L,)',str(s))
+    if n!=[]:
+      nS=re.findall('\d+',n[0])
+      reviewid=int(nS[0])+1
+    else:
+      print("emmm")
+    liked=0
+    t=str(datetime.datetime.now())
+    modifiedtime=t[:10]
+    movieid=session['movieid']
+    g.conn.execute('''INSERT INTO review (reviewid,userid,movieid,comment,rating,liked,modifiedtime) VALUES (%s,%s,%s,%s,%s,%s,%s)''', (reviewid,userid,movieid,comment,rating,liked,modifiedtime))
+    context=profile(userid)
+    reviewidl.close()
+    return render_template("profile.html", **context)
+  except Exception as e:
+    error=str(e)
+    print(error)
+  return render_template('reviewAdd.html')
 
 @app.route('/update', methods=['POST'])
 def update():
@@ -147,26 +196,78 @@ def profile(id):
   for result in cursor:
     datas.append(result)
   cursor.close()
-  context = dict(data = datas)
+  cursor2=g.conn.execute("SELECT * FROM review WHERE userid=%s",str(id))
+  datas2=[]
+  for result in cursor2:
+    datas2.append(result)
+  cursor2.close()
+  datastotal=datas+datas2
+  context = dict(data = datastotal)
   return context
 
-@app.route('/movie', methods=['POST'])
-def movie():
-  movieid=request.form['movie']
+def movieinfo(id):
   try:
-    cursor=g.conn.execute('''SELECT * FROM movie WHERE movieid = %s''',
-                             movieid)
+    cursor=g.conn.execute('''SELECT * FROM movie WHERE movieid = '''+str(id))
     datas = []
     for result in cursor:
       datas.append(result)
     cursor.close()
-    context = dict(data = datas)
-    return render_template("movie.html", **context)
+    cursor=g.conn.execute('''SELECT * FROM movie WHERE movieid = '''+str(id))
+    ss=cursor.fetchone()
+    session['movieid']=ss[0]
+    session['title']=ss[1]
+    session['popularity']=ss[2]
+    session['genre']=ss[3]
+    session['revenue']=ss[4]
+    cursor.close()
+    cursor=g.conn.execute("SELECT * FROM review WHERE movieid=%s",str(id))
+    datas2=[]
+    for result in cursor:
+      datas2.append(result)
+    cursor.close()
+    datastotal=datas+datas2
+    context = dict(data = datastotal)
+    return context
   except Exception as e:
     error=str(e)
     print(error)
   return render_template('index.html')
 
+def reviewinfo(id):
+  try:
+    cursor=g.conn.execute('''SELECT * FROM review WHERE reviewid = '''+str(id))
+    datas = []
+    for result in cursor:
+      datas.append(result)
+    cursor.close()
+    cursor=g.conn.execute('''SELECT * FROM review WHERE reviewid = '''+str(id))
+    ss=cursor.fetchone()
+    session['reviewid']=ss[0]
+    session['ruserid']=ss[1]
+    session['rmovieid']=ss[2]
+    session['comment']=ss[3]
+    session['rating']=ss[4]
+    session['liked']=ss[5]
+    session['modifiedtime']=ss[6]
+    cursor.close()
+    datastotal=datas
+    context = dict(data = datastotal)
+    return context
+  except Exception as e:
+    error=str(e)
+    print(error)
+  return render_template('index.html')
+
+@app.route('/movieList', methods=['POST'])
+def movie():
+  movieid=request.form['movie']
+  try:
+    context=movieinfo(movieid)
+    return render_template("movieList.html", **context)
+  except Exception as e:
+    error=str(e)
+    print(error)
+  return render_template('index.html')
 
 if __name__ == "__main__":
   import click
