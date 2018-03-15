@@ -13,7 +13,14 @@
 
   <div>
     {% for n in data %}
+    <div>{% if n==data[0]%}</div>
+    <div>User information</div>
     <div>{{n}}</div>
+    <div>{% elif n==data[1]%}</div>
+    <div>Review information</div>
+    <div>{% else%}</div>
+    <div>{{n}}</div>
+    <div>{% endif %}</div>
     {% endfor %}
   </div>
 
