@@ -15,8 +15,6 @@ app.secret_key='rz2390ps2997project'
 DATABASEURI = "postgresql://rz2390:rz2390ps2997project@35.231.44.137/proj1part2"
 engine = create_engine(DATABASEURI)
 
-
-
 @app.before_request
 def before_request():
   try:
@@ -88,6 +86,17 @@ def displayMovie(movieid):
     print(error)
   return render_template("movieDisplay.html")
 
+#???????????
+@app.route('/movieListID/<movieid>')
+def movie3(movieid):
+  try:
+    context=movieinfo(movieid)
+    return render_template("movieListID.html", **context)
+  except Exception as e:
+    error=str(e)
+    print(error)
+  return render_template('movieListGenre.html')
+
 @app.route('/reviewDisplay/<reviewid>')
 def displayReview(reviewid):
   cursor=g.conn.execute('''SELECT * FROM review WHERE reviewid='''+str(reviewid))
@@ -103,6 +112,19 @@ def displayReview(reviewid):
 
 @app.route('/movieDisplay/reviewDisplay/<reviewid>')
 def displayReview2(reviewid):
+  print("reviewid",reviewid)
+  cursor=g.conn.execute('''SELECT * FROM review WHERE reviewid='''+str(reviewid))
+  ss=cursor.fetchone()
+  reviewid=str(reviewid)
+  liked=str(ss[5]+1)
+  cursor.close()
+  cursor=g.conn.execute('''UPDATE review SET liked='''+liked +'''WHERE reviewid='''+reviewid)
+  cursor.close()
+  context=reviewinfo(reviewid)
+  return render_template("reviewDisplay.html",**context)
+
+@app.route('/movieListID/reviewDisplay/<reviewid>')
+def displayReview3(reviewid):
   print("reviewid",reviewid)
   cursor=g.conn.execute('''SELECT * FROM review WHERE reviewid='''+str(reviewid))
   ss=cursor.fetchone()
