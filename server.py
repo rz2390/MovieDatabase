@@ -8,6 +8,7 @@ from flask import Flask, request, abort, url_for, render_template, g, redirect, 
 import json
 import datetime
 
+
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 app.secret_key='rz2390ps2997project'
@@ -79,9 +80,9 @@ def displayMovie(movieid):
     t=str(datetime.datetime.now())
     modifiedtime=t[:10]
     g.conn.execute('''INSERT INTO wishlist (wishlistid,userid,movieid,modifiedtime) VALUES (%s,%s,%s,%s)''', (wishlistid,userid,movieid,modifiedtime))
-    context=profile(userid)
+    user,review,wishlist=profile(userid)
     wishlistidl.close()
-    return render_template("profile.html",**context)
+    return render_template("profile.html",u=user,r=review,w=wishlist)
   except Exception as e:
     error=str(e)
     print(error)
@@ -159,9 +160,9 @@ def review():
     modifiedtime=t[:10]
     movieid=session['movieid']
     g.conn.execute('''INSERT INTO review (reviewid,userid,movieid,comment,rating,liked,modifiedtime) VALUES (%s,%s,%s,%s,%s,%s,%s)''', (reviewid,userid,movieid,comment,rating,liked,modifiedtime))
-    context=profile(userid)
+    user,review,wishlist=profile(userid)
     reviewidl.close()
-    return render_template("profile.html", **context)
+    return render_template("profile.html", u=user,r=review,w=wishlist)
   except Exception as e:
     error=str(e)
     print(error)
@@ -196,9 +197,9 @@ def update():
     description=session['description']
   try:
     cursor=g.conn.execute('''UPDATE users SET userid=%s,password=%s,nickname=%s,age=%s,gender=%s,imageurl=%s,email=%s,description=%s WHERE userid='''+str(userid), (userid,password,nickname,age,gender,imageurl,email,description))
-    context=profile(userid)
+    user,review,wishlist=profile(userid)
     cursor.close()
-    return render_template("profile.html", **context)
+    return render_template("profile.html", u=user,r=review,w=wishlist)
   except Exception as e:
     error=str(e)
     print(error)
@@ -214,7 +215,11 @@ def login():
                              (userid, password))
     loginff=loginf.fetchone()
     if loginff:
-      context=profile(userid)
+      #context=profile(userid)
+      user,review,wishlist=profile(userid)
+      print("user",user)
+      print("review",review)
+      print("wishlist",wishlist)
       s=g.conn.execute('SELECT * FROM users WHERE userid=%s',userid)
       ss=s.fetchone()
       session['userid']=ss[0]
@@ -227,7 +232,7 @@ def login():
       session['description']=ss[7]
       loginf.close()
       s.close()
-      return render_template("profile.html", **context)
+      return render_template("profile.html",u=user,r=review,w=wishlist)
   except Exception as e:
     error=str(e)
     print(error)
@@ -254,9 +259,9 @@ def register():
     else:
       print("emmm")
     g.conn.execute('''INSERT INTO users (userid,password,nickname,age,gender,imageurl,email,description) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)''', (userid,password,nickname,age,gender,imageurl,email,description))
-    context=profile(userid)
+    user,review,wishlist=profile(userid)
     useridl.close()
-    return render_template("profile.html", **context)
+    return render_template("profile.html", u=user,r=review,w=wishlist)
   except Exception as e:
     error=str(e)
     print(error)
@@ -268,19 +273,25 @@ def profile(id):
   for result in cursor:
     datas.append(result)
   cursor.close()
-  cursor2=g.conn.execute("SELECT * FROM review WHERE userid=%s",str(id))
+  #cursor2=g.conn.execute("SELECT * FROM review WHERE userid=%s",str(id))
+  cursor2=g.conn.execute("SELECT M.title, R.movieid, R.comment, R.rating, R.liked, R.modifiedtime FROM movie M, review R WHERE M.movieid=R.movieid AND R.userid=%s",str(id))
   datas2=[]
   for result in cursor2:
     datas2.append(result)
   cursor2.close()
-  cursor3=g.conn.execute("SELECT * FROM wishlist WHERE userid=%s",str(id))
+  #cursor3=g.conn.execute("SELECT * FROM wishlist WHERE userid=%s",str(id))
+  cursor3=g.conn.execute("SELECT M.title, W.movieid, W.modifiedtime FROM movie M, wishlist W WHERE M.movieid=W.movieid AND W.userid=%s",str(id))
   datas3=[]
   for result in cursor3:
-    datas.append(result)
+    datas3.append(result)
   cursor3.close()
-  datastotal=datas+datas2+datas3
-  context = dict(data = datastotal)
-  return context
+  #datastotal=datas+datas2+datas3
+  #context = dict(data = datastotal)
+  #return context
+  print("datas",datas)
+  print("datas2",datas2)
+  print("datas3",datas3)
+  return datas,datas2,datas3
 
 def movieinfo(id):
   try:
@@ -305,6 +316,7 @@ def movieinfo(id):
     datastotal=datas+datas2
     context = dict(data = datastotal)
     return context
+    #return datas,datas2
   except Exception as e:
     error=str(e)
     print(error)
@@ -370,7 +382,7 @@ if __name__ == "__main__":
   @click.option('--debug', is_flag=True)
   @click.option('--threaded', is_flag=True)
   @click.argument('HOST', default='0.0.0.0')
-  @click.argument('PORT', default=8111, type=int)
+  @click.argument('PORT', default=8112, type=int)
   def run(debug, threaded, host, port):
     HOST, PORT = host, port
     print("running on %s:%d" % (HOST, PORT))

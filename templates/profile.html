@@ -13,57 +13,74 @@
 <body>
   <h1>User Profile</h1>
 
+
+
+  user
   <div>
-    {% for n in data %}
-
-
-**************************************************************
-
-    <div>{% if n==data[0]%}</div>
-    <table style="width:50%">
-      <caption>User</caption>
+    {% for n in u %}
+        <table style="width:50%">
       <tr>
         <th>User ID</th>
         <th>Nickname</th>
+          <th>Age</th>
+          <th>Gender</th>
+          <th>Email</th>
       </tr>
       <tr>
         <td>{{n[0]}}</td>
-        <td>{{n[1]}}</td>
-      </tr>
-    </table>
-    <div>{% elif n[4]%}</div>
-    <table style="width:100%">
-      <caption>Review</caption>
-      <tr>
-        <th>Movie ID</th>
-        <th>Rating</th>
-        <th>Vote</th>
-        <th>Date</th>
-        <th>Comment</th>
-      </tr>
-      <tr>
         <td>{{n[2]}}</td>
-        <td>{{n[4]}}</td>
-        <td>{{n[5]}}</td>
-        <td>{{n[6]}}</td>
-        <td>{{n[3]}}</td>
+          <td>{{n[3]}}</td>
+          <td>{{n[4]}}</td>
+          <td>{{n[6]}}</td>
       </tr>
     </table>
-    <div>{% else%}</div>
-    <table style="width:50%">
-      <caption>Wishlist</caption>
-      <tr>
-        <th>Movie ID</th>
-        <th>Date</th>
-      </tr>
-      <tr>
-        <td>{{n[2]}}</td>
-        <td>{{n[3]}}</td>
-      </tr>
-    </table>
-    <div>{% endif %}</div>
     {% endfor %}
   </div>
+
+
+  review
+  <div>
+    {% for n in r %}
+    <table style="width:100%">
+      <tr>
+          <th>Movie Title</th>
+          <th>Movie ID</th>
+          <th>Rating</th>
+          <th>Vote</th>
+          <th>Date</th>
+          <th>Comment</th>
+      </tr>
+      <tr>
+          <td>{{n[0]}}</td>
+          <td>{{n[1]}}</td>
+          <td>{{n[3]}}</td>
+          <td>{{n[4]}}</td>
+          <td>{{n[5]}}</td>
+        <td>{{n[2]}}</td>
+      </tr>
+    </table>
+    {% endfor %}
+  </div>
+
+  wishlist
+  <div>
+    {% for n in w %}
+    <table style="width:50%">
+      <tr>
+          <th>Movie Title</th>
+        <th>Movie ID</th>
+        <th>Date</th>
+      </tr>
+      <tr>
+          <td>{{n[0]}}</td>
+        <td>{{n[1]}}</td>
+        <td>{{n[2]}}</td>
+      </tr>
+    </table>
+    {% endfor %}
+  </div>
+
+
 
 
 <p><a href="/update">Update</a></p>
