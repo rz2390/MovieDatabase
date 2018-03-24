@@ -1,3 +1,6 @@
+{% extends "layout.html" %}
+{% block content %}
+
 <html>
   <style>
     body{ 
@@ -9,26 +12,47 @@
 <body>
   <h1>Movie Database</h1>
 
-<p><a href="register">Register</a></p>
-  <p><a href="login">Login</a></p>
-
-
 <form method="POST" action="/movieListID">
-<p>search movie by movie ID: <input type="text" name="movie"> <input type="submit" value="Search"></p>
+<p>
+  <input type="text" name="movie" style="width: 100px">
+  <input type="submit" value="Search By Movie ID">
+</p>
+</form>
+
+  <form method="POST" action="/movieListTitle">
+<p>
+  <input type="text" name="movie" style="width: 100px">
+  <input type="submit" value="Search By Movie Title">
+</p>
 </form>
 
 <form method="POST" action="/movieListGenre" name="option">
-<select name="option" value="Genre">
+  <p>
+<select name="option" value="Genre" style="width: 100px">
   <option value="Crime">Crime</option>
   <option value="Drama">Drama</option>
   <option value="History">History</option>
   <option value="Action">Action</option>
   <option value="Adventure">Adventure</option>
 </select>
-  <button type="submit">Search</button>
+  <button type="submit">Search By Movie Genre</button>
+  </p>
 </form>
 
+<form method="POST" action="/movieListPopularity" name="option">
+  <p>
+<select name="option" value="Genre" style="width: 100px">
+  <option value="Crime">Five</option>
+  <option value="Drama">Four</option>
+  <option value="History">Three</option>
+  <option value="Action">Two</option>
+  <option value="Adventure">One</option>
+</select>
+  <button type="submit">Search By Movie Popularity</button>
+  </p>
+</form>
 </body>
 
 
 </html>
+{% endblock %}

@@ -36,6 +36,7 @@ def index():
   if session:
     session.clear()
   return render_template("index.html")
+  #return render_template("template.html")
 
 @app.route('/index2')
 def index2():
