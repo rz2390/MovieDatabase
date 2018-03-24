@@ -92,8 +92,8 @@ def displayMovie(movieid):
 @app.route('/movieListID/<movieid>')
 def movie3(movieid):
   try:
-    context=movieinfo(movieid)
-    return render_template("movieListID.html", **context)
+    movie,review,actor,director=movieinfo(movieid)
+    return render_template("movieListID.html", m=movie,r=review,a=actor,d=director)
   except Exception as e:
     error=str(e)
     print(error)
@@ -215,7 +215,6 @@ def login():
                              (userid, password))
     loginff=loginf.fetchone()
     if loginff:
-      #context=profile(userid)
       user,review,wishlist=profile(userid)
       print("user",user)
       print("review",review)
@@ -308,14 +307,26 @@ def movieinfo(id):
     session['genre']=ss[3]
     session['revenue']=ss[4]
     cursor.close()
-    cursor=g.conn.execute("SELECT * FROM review WHERE movieid=%s",str(id))
+
+    cursor=g.conn.execute("SELECT A.name, A.gender, A.age FROM movie M, actor A, perform P WHERE A.actid=P.actid AND M.movieid=P.movieid AND M.movieid=%s",str(id))
+    datas3=[]
+    for result in cursor:
+      datas3.append(result)
+    cursor.close()
+
+    cursor=g.conn.execute("SELECT D.name, D.gender, D.age FROM movie M, director D, direct DD WHERE  D.directorid=DD.directorid AND DD.movieid=M.movieid AND M.movieid=%s",str(id))
+    datas4=[]
+    for result in cursor:
+      datas4.append(result)
+    cursor.close()
+
+    cursor=g.conn.execute("SELECT M.title, R.movieid, R.comment, R.rating, R.liked, R.modifiedtime FROM movie M, review R WHERE M.movieid=R.movieid AND R.userid=%s",str(id))
     datas2=[]
     for result in cursor:
       datas2.append(result)
     cursor.close()
-    datastotal=datas+datas2
-    context = dict(data = datastotal)
-    return context
+
+    return datas,datas2,datas3,datas4
     #return datas,datas2
   except Exception as e:
     error=str(e)
@@ -351,8 +362,8 @@ def reviewinfo(id):
 def movie():
   movieid=request.form['movie']
   try:
-    context=movieinfo(movieid)
-    return render_template("movieListID.html", **context)
+    movie,review,actor,director=movieinfo(movieid)
+    return render_template("movieListID.html", m=movie,r=review,a=actor,d=director)
   except Exception as e:
     error=str(e)
     print(error)

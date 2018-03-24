@@ -13,19 +13,99 @@
 <body>
   <h1>Movie Information</h1>
 
-
+  movie
   <div>
-    {% for n in data %}
-    <div>{{n}}</div>
-    <div>{% if n==data[0]%}</div>
-    <div><div><p><a href="/reviewAdd">Review</a></p></div></div>
+    {% for n in m %}
+             <div><div><p><a href="/reviewAdd">Review</a></p></div></div>
     <div><div><p><a href="movieDisplay/{{n[0]}}">Add to Wishlist</a></p></div></div>
 
-    <div>{% else%}</div>
-    <div><div><p><a href="reviewDisplay/{{n[0]}}">Vote</a></p></div></div>
-    <div>{% endif%}</div>
+
+    <table style="width:50%">
+      <tr>
+        <th>Movie ID</th>
+        <th>Movie Title</th>
+          <th>Movie Genre</th>
+      </tr>
+      <tr>
+        <td>{{n[0]}}</td>
+        <td>{{n[1]}}</td>
+          <td>{{n[3]}}</td>
+      </tr>
+    </table>
     {% endfor %}
   </div>
+
+  actor
+  <div>
+    {% for n in a %}
+
+        <table style="width:50%">
+      <tr>
+        <th>Name</th>
+        <th>Gender</th>
+          <th>Age</th>
+      </tr>
+      <tr>
+        <td>{{n[0]}}</td>
+        <td>{{n[1]}}</td>
+          <td>{{n[2]}}</td>
+      </tr>
+    </table>
+    {% endfor %}
+  </div>
+
+  director
+  <div>
+    {% for n in d %}
+
+            <table style="width:50%">
+      <tr>
+        <th>Name</th>
+        <th>Gender</th>
+          <th>Age</th>
+      </tr>
+      <tr>
+        <td>{{n[0]}}</td>
+        <td>{{n[1]}}</td>
+          <td>{{n[2]}}</td>
+      </tr>
+    </table>
+    {% endfor %}
+  </div>
+
+
+
+  review
+  <div>
+    {% for n in r %}
+
+  <table style="width:100%">
+
+      <tr>
+          <th>Movie Title</th>
+          <th>Movie ID</th>
+          <th>Rating</th>
+          <th>Vote</th>
+          <th>Date</th>
+          <th>Comment</th>
+      </tr>
+      <tr>
+          <td>{{n[0]}}</td>
+          <td>{{n[1]}}</td>
+          <td>{{n[3]}}</td>
+          <td>{{n[4]}}</td>
+          <td>{{n[5]}}</td>
+        <td>{{n[2]}}</td>
+      </tr>
+    </table>
+
+    <div><div><p><a href="reviewDisplay/{{n[0]}}">Vote</a></p></div></div>
+    {% endfor %}
+  </div>
+
+
+
+
 
 
 
