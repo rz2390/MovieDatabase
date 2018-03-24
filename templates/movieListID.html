@@ -2,6 +2,28 @@
 {% block content %}
 
 <html>
+    <style>
+    table.dataintable {
+    border: 1px solid #888888;
+    border-collapse: collapse;
+    font-family: Arial,Helvetica,sans-serif;
+    margin-top: 10px;
+    width: 100%;
+    }
+    table.dataintable th {
+    background-color: #CCCCCC;
+    border: 1px solid #888888;
+    padding: 5px 15px 5px 5px;
+    text-align: left;
+    vertical-align: baseline;
+    }
+    table.dataintable td {
+    background-color: #EFEFEF;
+    border: 1px solid #AAAAAA;
+    padding: 5px 15px 5px 5px;
+    vertical-align: text-top;
+    }
+    </style>
   <style>
     body{
       font-size: 15pt;
@@ -13,14 +35,14 @@
 <body>
   <h1>Movie Information</h1>
 
-  movie
+  <h2>movie</h2>
   <div>
     {% for n in m %}
              <div><div><p><a href="/reviewAdd">Review</a></p></div></div>
     <div><div><p><a href="movieDisplay/{{n[0]}}">Add to Wishlist</a></p></div></div>
 
 
-    <table style="width:50%">
+    <table class="dataintable">
       <tr>
         <th>Movie ID</th>
         <th>Movie Title</th>
@@ -35,11 +57,10 @@
     {% endfor %}
   </div>
 
-  actor
+  <h2>actor</h2>
   <div>
     {% for n in a %}
-
-        <table style="width:50%">
+        <table class="dataintable">
       <tr>
         <th>Name</th>
         <th>Gender</th>
@@ -54,11 +75,10 @@
     {% endfor %}
   </div>
 
-  director
+  <h2>director</h2>
   <div>
     {% for n in d %}
-
-            <table style="width:50%">
+        <table class="dataintable">
       <tr>
         <th>Name</th>
         <th>Gender</th>
@@ -75,11 +95,10 @@
 
 
 
-  review
+  <h2>review</h2>
   <div>
     {% for n in r %}
-
-  <table style="width:100%">
+        <table class="dataintable">
 
       <tr>
           <th>Movie Title</th>
@@ -102,18 +121,6 @@
     <div><div><p><a href="reviewDisplay/{{n[0]}}">Vote</a></p></div></div>
     {% endfor %}
   </div>
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 </body>
