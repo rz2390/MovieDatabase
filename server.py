@@ -78,7 +78,6 @@ def displayMovie(movieid):
         userid = session['userid']
         wishlistidl = g.conn.execute('''SELECT COUNT(*) FROM wishlist''')
         s = list(wishlistidl)
-        print("test:", s)
         # s='[(11L,)]'
         n = re.findall('(\d+L,)', str(s))
         if n != []:
@@ -90,8 +89,16 @@ def displayMovie(movieid):
         modifiedtime = t[:10]
         g.conn.execute('''INSERT INTO wishlist (wishlistid,userid,movieid,modifiedtime) VALUES (%s,%s,%s,%s)''',
                        (wishlistid, userid, movieid, modifiedtime))
-        user, review, wishlist = profile(userid)
         wishlistidl.close()
+
+        cursor = g.conn.execute(
+            '''update movie set popularity = (Select (SUM(R.rating) + SUM(R.rating * R.liked))/(SUM(R.liked)+COUNT(R.rating))
+							  From review R
+							  Group By R.movieid
+							  Having R.movieid = %s) where movieid = %s''',(movieid,movieid))
+        user, review, wishlist = profile(userid)
+        cursor.close()
+
         return render_template("profile.html", u=user, r=review, w=wishlist)
     except Exception as e:
         error = str(e)
@@ -127,7 +134,6 @@ def displayReview(reviewid):
 
 @app.route('/movieDisplay/reviewDisplay/<reviewid>')
 def displayReview2(reviewid):
-    print("reviewid", reviewid)
     cursor = g.conn.execute('''SELECT * FROM review WHERE reviewid=''' + str(reviewid))
     ss = cursor.fetchone()
     reviewid = str(reviewid)
@@ -141,7 +147,6 @@ def displayReview2(reviewid):
 
 @app.route('/movieListID/reviewDisplay/<reviewid>')
 def displayReview3(reviewid):
-    print("reviewid", reviewid)
     cursor = g.conn.execute('''SELECT * FROM review WHERE reviewid=''' + str(reviewid))
     ss = cursor.fetchone()
     reviewid = str(reviewid)
@@ -177,8 +182,16 @@ def review():
         g.conn.execute(
             '''INSERT INTO review (reviewid,userid,movieid,comment,rating,liked,modifiedtime) VALUES (%s,%s,%s,%s,%s,%s,%s)''',
             (reviewid, userid, movieid, comment, rating, liked, modifiedtime))
-        user, review, wishlist = profile(userid)
         reviewidl.close()
+
+        cursor = g.conn.execute(
+            '''update movie set popularity = (Select (SUM(R.rating) + SUM(R.rating * R.liked))/(SUM(R.liked)+COUNT(R.rating))
+							  From review R
+							  Group By R.movieid
+							  Having R.movieid = %s) where movieid = %s''',(movieid,movieid))
+        user, review, wishlist = profile(userid)
+        cursor.close()
+
         return render_template("profile.html", u=user, r=review, w=wishlist)
     except Exception as e:
         error = str(e)
@@ -189,8 +202,6 @@ def review():
 
 @app.route('/update', methods=['POST'])
 def update():
-    print("session:", session)
-    print("request.form:", request.form)
     description = request.form['description']
     gender = request.form['gender']
     imageurl = request.form['imageurl']
@@ -226,6 +237,20 @@ def update():
     return render_template('update.html')
 
 
+@app.route('/profile')
+def profile2():
+    try:
+        if 'userid' not in session:
+            return render_template("login.html")
+        userid = session['userid']
+        user, review, wishlist = profile(userid)
+        return render_template("profile.html", u=user, r=review, w=wishlist)
+    except Exception as e:
+        error = str(e)
+        print(error)
+    return render_template('index2.html')
+
+
 @app.route('/login', methods=['POST'])
 def login():
     userid = request.form['userid']
@@ -237,9 +262,6 @@ def login():
         loginff = loginf.fetchone()
         if loginff:
             user, review, wishlist = profile(userid)
-            print("user", user)
-            print("review", review)
-            print("wishlist", wishlist)
             s = g.conn.execute('SELECT * FROM users WHERE userid=%s', userid)
             ss = s.fetchone()
             session['userid'] = ss[0]
@@ -268,7 +290,6 @@ def register():
     nickname = request.form['nickname']
     age = request.form['age']
     email = request.form['email']
-    # print("name:",name)
     try:
         useridl = g.conn.execute('''SELECT COUNT(*) FROM users''')
         s = list(useridl)
@@ -313,12 +334,6 @@ def profile(id):
     for result in cursor3:
         datas3.append(result)
     cursor3.close()
-    # datastotal=datas+datas2+datas3
-    # context = dict(data = datastotal)
-    # return context
-    print("datas", datas)
-    print("datas2", datas2)
-    print("datas3", datas3)
     return datas, datas2, datas3
 
 
@@ -355,7 +370,7 @@ def movieinfo(id):
         cursor.close()
 
         cursor = g.conn.execute(
-            "SELECT M.title, R.movieid, R.comment, R.rating, R.liked, R.modifiedtime FROM movie M, review R WHERE M.movieid=R.movieid AND R.userid=%s",
+            "SELECT M.title, R.movieid, R.comment, R.rating, R.liked, R.modifiedtime, R.reviewid FROM movie M, review R WHERE M.movieid=R.movieid AND R.movieid=%s",
             str(id))
         datas2 = []
         for result in cursor:
@@ -372,11 +387,13 @@ def movieinfo(id):
 
 def reviewinfo(id):
     try:
-        cursor = g.conn.execute('''SELECT * FROM review WHERE reviewid = ''' + str(id))
+        cursor2 = g.conn.execute(
+        "SELECT M.title, R.movieid, R.comment, R.rating, R.liked, R.modifiedtime FROM movie M, review R WHERE M.movieid=R.movieid AND R.reviewid=%s",
+        str(id))
         datas = []
-        for result in cursor:
+        for result in cursor2:
             datas.append(result)
-        cursor.close()
+        cursor2.close()
         cursor = g.conn.execute('''SELECT * FROM review WHERE reviewid = ''' + str(id))
         ss = cursor.fetchone()
         session['reviewid'] = ss[0]
@@ -408,6 +425,25 @@ def movie():
     return render_template('index2.html')
 
 
+@app.route('/movieListTitle', methods=['POST'])
+def movie4():
+    movietitle = request.form['movie']
+    print("movietitle", movietitle)
+    try:
+        cursor = g.conn.execute('''SELECT M.movieid FROM movie M WHERE M.title=''' + "'" + movietitle + "'")
+        ss = cursor.fetchone()
+        print("ss", ss)
+        movieid = ss[0]
+        print("movieid,ss[0]", movieid)
+        cursor.close()
+        movie, review, actor, director = movieinfo(movieid)
+        return render_template("movieListID.html", m=movie, r=review, a=actor, d=director)
+    except Exception as e:
+        error = str(e)
+        print(error)
+    return render_template('index2.html')
+
+
 @app.route('/movieListGenre', methods=['POST'])
 def movie2():
     genre = request.form['option']
@@ -417,9 +453,25 @@ def movie2():
         for result in cursor:
             datas.append(result)
         cursor.close()
-        print("datas", datas)
         context = dict(data=datas)
         return render_template("movieListGenre.html", **context)
+    except Exception as e:
+        error = str(e)
+        print(error)
+    return render_template('index2.html')
+
+@app.route('/movieListPopularity', methods=['POST'])
+def movie_popularity():
+    rating = request.form['option']
+    try:
+        cursor = g.conn.execute('''SELECT * FROM movie M WHERE M.popularity=%s''', str(rating))
+        datas = []
+        for result in cursor:
+            datas.append(result)
+        cursor.close()
+        print("datas", datas)
+        context = dict(data=datas)
+        return render_template("movieListPopularity.html", **context)
     except Exception as e:
         error = str(e)
         print(error)

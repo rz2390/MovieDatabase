@@ -3,12 +3,33 @@
 
 <html>
   <style>
+    table.dataintable {
+    border: 1px solid #888888;
+    border-collapse: collapse;
+    font-family: Arial,Helvetica,sans-serif;
+    margin-top: 10px;
+    width: 100%;
+    }
+    table.dataintable th {
+    background-color: #CCCCCC;
+    border: 1px solid #888888;
+    padding: 5px 15px 5px 5px;
+    text-align: left;
+    vertical-align: baseline;
+    }
+    table.dataintable td {
+    background-color: #EFEFEF;
+    border: 1px solid #AAAAAA;
+    padding: 5px 15px 5px 5px;
+    vertical-align: text-top;
+    }
+    </style>
+  <style>
     body{
       font-size: 15pt;
       font-family: arial;
     }
   </style>
-
 
 <body>
   <h1>Movie Information</h1>
@@ -16,7 +37,23 @@
 
   <div>
     {% for n in data %}
-    <div>{{n}}</div>
+    <div>
+
+             <table class="dataintable">
+      <tr>
+        <th>Movie ID</th>
+        <th>Movie Title</th>
+        <th>Popularity</th>
+          <th>Movie Genre</th>
+      </tr>
+      <tr>
+        <td>{{n[0]}}</td>
+        <td>{{n[1]}}</td>
+        <td>{{n[2]}}</td>
+          <td>{{n[3]}}</td>
+      </tr>
+    </table>
+    </div>
     <div><div><p><a href="/reviewAdd">Review</a></p></div></div>
     <div><div><p><a href="movieDisplay/{{n[0]}}">Add to wishlist</a></p></div></div>
     <div><div><p><a href="movieListID/{{n[0]}}">Go to this movie</a></p></div></div>
