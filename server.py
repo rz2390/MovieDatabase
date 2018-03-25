@@ -114,8 +114,8 @@ def displayMovie(movieid):
 @app.route('/movieListID/<movieid>')
 def movie3(movieid):
     try:
-        movie, review, actor, director, keyword= movieinfo(movieid)
-        return render_template("movieListID.html", m=movie, r=review, a=actor, d=director, k=keyword)
+        movie, review, actor, director, keyword, region= movieinfo(movieid)
+        return render_template("movieListID.html", m=movie, r=review, a=actor, d=director, k=keyword, rr=region)
     except Exception as e:
         error = str(e)
         print(error)
@@ -226,8 +226,8 @@ def keyword():
             (keywordid, userid, movieid, content, modifiedtime))
         reviewidl.close()
 
-        movie, review, actor, director, keyword= movieinfo(movieid)
-        return render_template("movieListID.html", m=movie, r=review, a=actor, d=director, k=keyword)
+        movie, review, actor, director, keyword, region= movieinfo(movieid)
+        return render_template("movieListID.html", m=movie, r=review, a=actor, d=director, k=keyword, rr=region)
     except Exception as e:
         error = str(e)
         print(error)
@@ -426,7 +426,15 @@ def movieinfo(id):
             datas5.append(result)
         cursor.close()
 
-        return datas, datas2, datas3, datas4, datas5
+        cursor = g.conn.execute(
+            "SELECT M.title, M.movieID, R.country, R.language FROM regions R, movie M, show S WHERE R.regionid=S.regionid AND S.movieid=M.movieid AND M.movieid=%s",
+            str(id))
+        datas6 = []
+        for result in cursor:
+            datas6.append(result)
+        cursor.close()
+
+        return datas, datas2, datas3, datas4, datas5, datas6
         # return datas,datas2
     except Exception as e:
         error = str(e)
@@ -466,8 +474,8 @@ def reviewinfo(id):
 def movie():
     movieid = request.form['movie']
     try:
-        movie, review, actor, director, keyword= movieinfo(movieid)
-        return render_template("movieListID.html", m=movie, r=review, a=actor, d=director, k=keyword)
+        movie, review, actor, director, keyword, region= movieinfo(movieid)
+        return render_template("movieListID.html", m=movie, r=review, a=actor, d=director, k=keyword, rr=region)
     except Exception as e:
         error = str(e)
         print(error)
@@ -485,8 +493,8 @@ def movie4():
         movieid = ss[0]
         print("movieid,ss[0]", movieid)
         cursor.close()
-        movie, review, actor, director, keyword= movieinfo(movieid)
-        return render_template("movieListID.html", m=movie, r=review, a=actor, d=director, k=keyword)
+        movie, review, actor, director, keyword, region= movieinfo(movieid)
+        return render_template("movieListID.html", m=movie, r=review, a=actor, d=director, k=keyword, rr=region)
     except Exception as e:
         error = str(e)
         print(error)
@@ -497,7 +505,7 @@ def movie4():
 
 @app.route('/movieListGenre', methods=['POST'])
 def movie2():
-    genre = request.form['movie']
+    genre = request.form['option']
     try:
         cursor = g.conn.execute('''SELECT * FROM movie WHERE genre=%s''', genre)
         datas = []

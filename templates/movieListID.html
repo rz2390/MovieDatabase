@@ -60,6 +60,26 @@
     {% endfor %}
   </div>
 
+    <h2>region</h2>
+  <div>
+    {% for n in rr %}
+        <table class="dataintable">
+      <tr>
+        <th>Movie Title</th>
+        <th>Movie ID</th>
+          <th>Country</th>
+          <th>Language</th>
+      </tr>
+      <tr>
+        <td>{{n[0]}}</td>
+        <td>{{n[1]}}</td>
+          <td>{{n[2]}}</td>
+          <td>{{n[3]}}</td>
+      </tr>
+    </table>
+    {% endfor %}
+  </div>
+
   <h2>actor</h2>
   <div>
     {% for n in a %}
