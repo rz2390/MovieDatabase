@@ -39,6 +39,7 @@
   <div>
     {% for n in m %}
              <div><div><p><a href="/reviewAdd">Review</a></p></div></div>
+      <div><div><p><a href="/keywordAdd">Add Keyword</a></p></div></div>
     <div><div><p><a href="movieDisplay/{{n[0]}}">Add to Wishlist</a></p></div></div>
 
 
@@ -90,6 +91,26 @@
         <td>{{n[0]}}</td>
         <td>{{n[1]}}</td>
           <td>{{n[2]}}</td>
+      </tr>
+    </table>
+    {% endfor %}
+  </div>
+
+  <h2>keyword</h2>
+  <div>
+    {% for n in k %}
+        <table class="dataintable">
+      <tr>
+        <th>Movie Title</th>
+        <th>Movie ID</th>
+          <th>Keyword</th>
+
+      </tr>
+      <tr>
+        <td>{{n[0]}}</td>
+        <td>{{n[1]}}</td>
+          <td>{{n[2]}}</td>
+
       </tr>
     </table>
     {% endfor %}

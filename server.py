@@ -69,6 +69,10 @@ def another3():
 def another4():
     return render_template("reviewAdd.html")
 
+@app.route('/keywordAdd')
+def another5():
+    return render_template("keywordAdd.html")
+
 
 @app.route('/movieDisplay/<movieid>')
 def displayMovie(movieid):
@@ -96,10 +100,10 @@ def displayMovie(movieid):
 							  From review R
 							  Group By R.movieid
 							  Having R.movieid = %s) where movieid = %s''',(movieid,movieid))
-        user, review, wishlist = profile(userid)
+        user, review, wishlist, keyword= profile(userid)
         cursor.close()
 
-        return render_template("profile.html", u=user, r=review, w=wishlist)
+        return render_template("profile.html", u=user, r=review, w=wishlist, k=keyword)
     except Exception as e:
         error = str(e)
         print(error)
@@ -110,8 +114,8 @@ def displayMovie(movieid):
 @app.route('/movieListID/<movieid>')
 def movie3(movieid):
     try:
-        movie, review, actor, director = movieinfo(movieid)
-        return render_template("movieListID.html", m=movie, r=review, a=actor, d=director)
+        movie, review, actor, director, keyword= movieinfo(movieid)
+        return render_template("movieListID.html", m=movie, r=review, a=actor, d=director, k=keyword)
     except Exception as e:
         error = str(e)
         print(error)
@@ -189,15 +193,45 @@ def review():
 							  From review R
 							  Group By R.movieid
 							  Having R.movieid = %s) where movieid = %s''',(movieid,movieid))
-        user, review, wishlist = profile(userid)
+        user, review, wishlist, keyword= profile(userid)
         cursor.close()
 
-        return render_template("profile.html", u=user, r=review, w=wishlist)
+        return render_template("profile.html", u=user, r=review, w=wishlist, k=keyword)
     except Exception as e:
         error = str(e)
         print(error)
     return render_template('reviewAdd.html')
-    # return redirect(url_for('reviewAdd'))
+
+@app.route('/keywordAdd', methods=['POST'])
+def keyword():
+    content = request.form['content']
+    try:
+        if 'userid' not in session:
+            return render_template("login.html")
+        userid = session['userid']
+        reviewidl = g.conn.execute('''SELECT COUNT(*) FROM keyword''')
+        s = list(reviewidl)
+        # s='[(11L,)]'
+        n = re.findall('(\d+L,)', str(s))
+        if n != []:
+            nS = re.findall('\d+', n[0])
+            keywordid = int(nS[0]) + 1
+        else:
+            print("emmmmm")
+        t = str(datetime.datetime.now())
+        modifiedtime = t[:10]
+        movieid = session['movieid']
+        g.conn.execute(
+            '''INSERT INTO keyword (keywordid,userid,movieid,content,modifiedtime) VALUES (%s,%s,%s,%s,%s)''',
+            (keywordid, userid, movieid, content, modifiedtime))
+        reviewidl.close()
+
+        movie, review, actor, director, keyword= movieinfo(movieid)
+        return render_template("movieListID.html", m=movie, r=review, a=actor, d=director, k=keyword)
+    except Exception as e:
+        error = str(e)
+        print(error)
+    return render_template('keywordAdd.html')
 
 
 @app.route('/update', methods=['POST'])
@@ -228,9 +262,9 @@ def update():
         cursor = g.conn.execute(
             '''UPDATE users SET userid=%s,password=%s,nickname=%s,age=%s,gender=%s,imageurl=%s,email=%s,description=%s WHERE userid=''' + str(
                 userid), (userid, password, nickname, age, gender, imageurl, email, description))
-        user, review, wishlist = profile(userid)
+        user, review, wishlist, keyword= profile(userid)
         cursor.close()
-        return render_template("profile.html", u=user, r=review, w=wishlist)
+        return render_template("profile.html", u=user, r=review, w=wishlist, k=keyword)
     except Exception as e:
         error = str(e)
         print(error)
@@ -243,8 +277,8 @@ def profile2():
         if 'userid' not in session:
             return render_template("login.html")
         userid = session['userid']
-        user, review, wishlist = profile(userid)
-        return render_template("profile.html", u=user, r=review, w=wishlist)
+        user, review, wishlist, keyword= profile(userid)
+        return render_template("profile.html", u=user, r=review, w=wishlist, k=keyword)
     except Exception as e:
         error = str(e)
         print(error)
@@ -261,7 +295,7 @@ def login():
                                 (userid, password))
         loginff = loginf.fetchone()
         if loginff:
-            user, review, wishlist = profile(userid)
+            user, review, wishlist, keyword= profile(userid)
             s = g.conn.execute('SELECT * FROM users WHERE userid=%s', userid)
             ss = s.fetchone()
             session['userid'] = ss[0]
@@ -274,7 +308,7 @@ def login():
             session['description'] = ss[7]
             loginf.close()
             s.close()
-            return render_template("profile.html", u=user, r=review, w=wishlist)
+            return render_template("profile.html", u=user, r=review, w=wishlist, k=keyword)
     except Exception as e:
         error = str(e)
         print(error)
@@ -303,9 +337,9 @@ def register():
         g.conn.execute(
             '''INSERT INTO users (userid,password,nickname,age,gender,imageurl,email,description) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)''',
             (userid, password, nickname, age, gender, imageurl, email, description))
-        user, review, wishlist = profile(userid)
+        user, review, wishlist, keyword= profile(userid)
         useridl.close()
-        return render_template("profile.html", u=user, r=review, w=wishlist)
+        return render_template("profile.html", u=user, r=review, w=wishlist, k=keyword)
     except Exception as e:
         error = str(e)
         print(error)
@@ -334,7 +368,14 @@ def profile(id):
     for result in cursor3:
         datas3.append(result)
     cursor3.close()
-    return datas, datas2, datas3
+    cursor4 = g.conn.execute(
+        "SELECT M.title, K.movieid, K.content FROM movie M, keyword K WHERE M.movieid=K.movieid AND K.userid=%s",
+        str(id))
+    datas4 = []
+    for result in cursor4:
+        datas4.append(result)
+    cursor4.close()
+    return datas, datas2, datas3, datas4
 
 
 def movieinfo(id):
@@ -377,7 +418,15 @@ def movieinfo(id):
             datas2.append(result)
         cursor.close()
 
-        return datas, datas2, datas3, datas4
+        cursor = g.conn.execute(
+            "SELECT DISTINCT M.title, M.movieid, K.content FROM keyword K, movie M WHERE K.movieid=M.movieid AND M.movieid=%s",
+            str(id))
+        datas5 = []
+        for result in cursor:
+            datas5.append(result)
+        cursor.close()
+
+        return datas, datas2, datas3, datas4, datas5
         # return datas,datas2
     except Exception as e:
         error = str(e)
@@ -417,8 +466,8 @@ def reviewinfo(id):
 def movie():
     movieid = request.form['movie']
     try:
-        movie, review, actor, director = movieinfo(movieid)
-        return render_template("movieListID.html", m=movie, r=review, a=actor, d=director)
+        movie, review, actor, director, keyword= movieinfo(movieid)
+        return render_template("movieListID.html", m=movie, r=review, a=actor, d=director, k=keyword)
     except Exception as e:
         error = str(e)
         print(error)
@@ -436,17 +485,19 @@ def movie4():
         movieid = ss[0]
         print("movieid,ss[0]", movieid)
         cursor.close()
-        movie, review, actor, director = movieinfo(movieid)
-        return render_template("movieListID.html", m=movie, r=review, a=actor, d=director)
+        movie, review, actor, director, keyword= movieinfo(movieid)
+        return render_template("movieListID.html", m=movie, r=review, a=actor, d=director, k=keyword)
     except Exception as e:
         error = str(e)
         print(error)
     return render_template('index2.html')
 
 
+
+
 @app.route('/movieListGenre', methods=['POST'])
 def movie2():
-    genre = request.form['option']
+    genre = request.form['movie']
     try:
         cursor = g.conn.execute('''SELECT * FROM movie WHERE genre=%s''', genre)
         datas = []
@@ -455,6 +506,22 @@ def movie2():
         cursor.close()
         context = dict(data=datas)
         return render_template("movieListGenre.html", **context)
+    except Exception as e:
+        error = str(e)
+        print(error)
+    return render_template('index2.html')
+
+@app.route('/movieListKeyword', methods=['POST'])
+def movie_keyword():
+    keyword = request.form['movie']
+    try:
+        cursor = g.conn.execute('''SELECT * FROM movie M, keyword K WHERE M.movieid=K.movieid AND K.content=%s''', keyword)
+        datas = []
+        for result in cursor:
+            datas.append(result)
+        cursor.close()
+        context = dict(data=datas)
+        return render_template("movieListKeyword.html", **context)
     except Exception as e:
         error = str(e)
         print(error)

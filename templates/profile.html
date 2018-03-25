@@ -102,6 +102,24 @@
     {% endfor %}
   </div>
 
+  <h2>Keyword</h2>
+  <div>
+    {% for n in k %}
+    <table class="dataintable">
+      <tr>
+          <th>Movie Title</th>
+        <th>Movie ID</th>
+        <th>Content</th>
+      </tr>
+      <tr>
+          <td>{{n[0]}}</td>
+        <td>{{n[1]}}</td>
+        <td>{{n[2]}}</td>
+      </tr>
+    </table>
+    {% endfor %}
+  </div>
+
 
 
 
