@@ -10,9 +10,9 @@ import datetime
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
-app.secret_key = 'rz2390ps2997project'
+app.secret_key = ' '
 
-DATABASEURI = "postgresql://rz2390:rz2390ps2997project@35.231.44.137/proj1part2"
+DATABASEURI = " "
 engine = create_engine(DATABASEURI)
 
 
